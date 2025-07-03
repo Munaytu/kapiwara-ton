@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
 
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
     const key = `country:${countryCode}`;
     await redis.incrby(key, clickCount);
     await redis.zincrby('leaderboard', clickCount, countryCode);
-    await redis.publish('leaderboard-updates', 'updated');
     console.log(`[API/CLICK] Incremented ${key} by ${clickCount}`);
     
     // 4. The sync with Supabase is now decoupled.
