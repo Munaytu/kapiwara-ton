@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     console.log(`[API/CLICK] Received ${clickCount} clicks.`);
 
     // 2. Get the user's country, normalize to lowercase to prevent duplicates (e.g., 'dev' vs 'DEV')
-    const countryCode = (request.headers.get('x-vercel-ip-country') || 'dev').toLowerCase();
+    const vercelCountry = request.headers.get('x-vercel-ip-country');
+    const countryCode = (vercelCountry || process.env.LOCAL_TEST_COUNTRY_CODE || 'DEV').toUpperCase();
     console.log(`[API/CLICK] Determined country: ${countryCode}`);
 
     // 3. Use Redis to increment the count for that country

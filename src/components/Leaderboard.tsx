@@ -62,7 +62,7 @@ const Leaderboard: React.FC = (): JSX.Element => {
             return (
               <tr key={entry.country_code + index} className="border-t border-gray-700">
                 <td className="p-2">{index + 1}</td>
-                <td className="p-2">{entry.country_code}</td>
+                <td className="p-2">{entry.country_code.toUpperCase()}</td>
                 <td className="p-2"><AnimatedNumber value={entry.clicks} /></td>
               </tr>
             );

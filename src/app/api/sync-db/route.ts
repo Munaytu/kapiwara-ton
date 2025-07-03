@@ -30,7 +30,7 @@ async function syncLeaderboard() {
     // Aggregate counts, normalizing country codes to lowercase
     const aggregatedCounts: { [key: string]: number } = {};
     keys.forEach((key, index) => {
-      const countryCode = key.split(":")[1].toLowerCase();
+      const countryCode = key.split(":")[1].toUpperCase();
       const clickValue = clickCounts[index];
       const clicks = Number(clickValue) || 0;
       
