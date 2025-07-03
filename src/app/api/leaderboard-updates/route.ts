@@ -1,59 +1,61 @@
-import { redis } from "@/lib/redis";
+import { redis, RedisClientType } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
+async function getLeaderboardData() {
+  const leaderboard = await redis.zrange('leaderboard', 0, -1, { rev: true, withScores: true });
+  if (!leaderboard) {
+    return [];
+  }
+  const formattedLeaderboard = [];
+  for (let i = 0; i < leaderboard.length; i += 2) {
+    formattedLeaderboard.push({
+      country_code: leaderboard[i],
+      clicks: parseInt(String(leaderboard[i + 1]), 10),
+    });
+  }
+  return formattedLeaderboard;
+}
+
 function generateEventStream() {
   const encoder = new TextEncoder();
+  let redisSubscriber: RedisClientType;
 
   const stream = new ReadableStream({
     async start(controller) {
-      async function push() {
+      redisSubscriber = redis.duplicate();
+      await redisSubscriber.connect();
+      console.log("[SSE] Redis subscriber connected");
+
+      const pushLeaderboard = async () => {
         try {
-          // 1. Get the leaderboard from Redis cache
-          const leaderboard = await redis.zrange('leaderboard', 0, -1, { rev: true, withScores: true });
-          
-          if (!leaderboard) {
-            console.log("[SSE] No leaderboard data found in Redis.");
-            // If no data, send an empty update or a "no data" event
-            const event = { event: "leaderboard_updated", data: [] };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}
-
-`));
-            return;
-          }
-
-          // 2. Process the leaderboard data into a more usable format
-          const formattedLeaderboard = [];
-          for (let i = 0; i < leaderboard.length; i += 2) {
-            formattedLeaderboard.push({
-              country_code: leaderboard[i],
-              clicks: parseInt(String(leaderboard[i + 1]), 10),
-            });
-          }
-
-          // 3. Send the leaderboard update as an SSE event
+          const formattedLeaderboard = await getLeaderboardData();
           const event = { event: "leaderboard_updated", data: formattedLeaderboard };
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}
 
 `));
-          
         } catch (error) {
-          console.error("[SSE] Error generating event:", error);
+          console.error("[SSE] Error pushing leaderboard:", error);
           controller.error(error);
-          return;
         }
+      };
 
-        // Instead of closing, we will push updates periodically.
-        // You might adjust the interval based on your needs.
-        await new Promise(resolve => setTimeout(resolve, 5000));  // Update every 5 seconds
-        await push(); 
-      }
+      // Immediately push the current state of the leaderboard
+      await pushLeaderboard();
 
-      await push();
+      // Subscribe to the 'leaderboard-updates' channel
+      await redisSubscriber.subscribe('leaderboard-updates', async (message: string) => {
+        console.log("[SSE] Received message from Redis:", message);
+        await pushLeaderboard();
+      });
     },
-    cancel() {
-      console.log("[SSE] Client disconnected");
+    async cancel() {
+      console.log("[SSE] Client disconnected, unsubscribing and quitting Redis.");
+      if (redisSubscriber) {
+        await redisSubscriber.unsubscribe('leaderboard-updates');
+        await redisSubscriber.quit();
+      }
     }
   });
 

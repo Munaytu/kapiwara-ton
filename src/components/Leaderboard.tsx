@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { JSX } from 'react';
 
 interface LeaderboardEntry {
@@ -11,8 +11,6 @@ interface LeaderboardEntry {
 const Leaderboard: React.FC = (): JSX.Element => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
-  // Use useRef to store the previous leaderboard data
-  const previousLeaderboardData = useRef<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     const connectToSSE = () => {
@@ -22,8 +20,6 @@ const Leaderboard: React.FC = (): JSX.Element => {
         try {
           const parsedData = JSON.parse(event.data);
           if (parsedData.event === "leaderboard_updated") {
-            // Store the current leaderboard data as previous data
-            previousLeaderboardData.current = leaderboardData;
             setLeaderboardData(parsedData.data);
           }
         } catch (e) {
@@ -46,15 +42,7 @@ const Leaderboard: React.FC = (): JSX.Element => {
     };
   }, []);
 
-  // Function to animate the click count
-  const animateValue = (start: number, end: number, duration: number) => {
-    let startTime: number | null = null;
-    return (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      return Math.floor(progress * (end - start) + start);
-    };
-  };
+  
 
   return (
     <div className="mt-8 w-full max-w-md bg-gray-800 rounded-lg p-4">
@@ -70,22 +58,11 @@ const Leaderboard: React.FC = (): JSX.Element => {
         </thead>
         <tbody>
           {leaderboardData.map((entry, index) => {
-            // Find the previous value for animation
-            const previousEntry = previousLeaderboardData.current.find(prevEntry => prevEntry.country_code === entry.country_code);
-            const previousClicks = previousEntry ? previousEntry.clicks : 0;
-            let animatedClicks = entry.clicks; // Default value
-
-            // Animate only if there's a change in clicks
-            if (previousClicks !== entry.clicks) {
-              const animation = animateValue(previousClicks, entry.clicks, 500); // Animation duration: 500ms
-              animatedClicks = animation(performance.now());
-            }
-
             return (
               <tr key={entry.country_code + index} className="border-t border-gray-700">
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">{entry.country_code}</td>
-                <td className="p-2">{animatedClicks}</td>
+                <td className="p-2">{entry.clicks}</td>
               </tr>
             );
           })}
