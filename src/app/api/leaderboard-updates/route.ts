@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 function generateEventStream() {
-  let counter = 0;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -18,7 +17,9 @@ function generateEventStream() {
             console.log("[SSE] No leaderboard data found in Redis.");
             // If no data, send an empty update or a "no data" event
             const event = { event: "leaderboard_updated", data: [] };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}
+
+`));
             return;
           }
 
@@ -33,9 +34,10 @@ function generateEventStream() {
 
           // 3. Send the leaderboard update as an SSE event
           const event = { event: "leaderboard_updated", data: formattedLeaderboard };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}
+
+`));
           
-          counter++;
         } catch (error) {
           console.error("[SSE] Error generating event:", error);
           controller.error(error);
@@ -58,7 +60,7 @@ function generateEventStream() {
   return stream;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   console.log("[SSE] Client connected");
   return new NextResponse(generateEventStream(), {
     headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" },
