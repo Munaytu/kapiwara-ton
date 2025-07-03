@@ -1,41 +1,60 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { JSX } from 'react';
 
 interface LeaderboardEntry {
-  country: string;
+  country_code: string;
   clicks: number;
 }
 
 const Leaderboard: React.FC = (): JSX.Element => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  const getLeaderboardData = async () => {
-    try {
-      const response = await fetch('/api/leaderboard');
-      if (!response.ok) {
-          console.error(`Failed to fetch leaderboard data: Status ${response.status}`);
-          throw new Error(`Failed to fetch leaderboard data: Status ${response.status}`);
-        }
-      const data = await response.json();
-      setLeaderboardData(data);
-    } catch (error) {
-      console.error("Failed to fetch leaderboard data:", error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred.");
-      }
-    }
-  };
+  // Use useRef to store the previous leaderboard data
+  const previousLeaderboardData = useRef<LeaderboardEntry[]>([]);
 
   useEffect(() => {
-    getLeaderboardData();
-    const interval = setInterval(getLeaderboardData, 2000); // Poll every 2 seconds
-    return () => clearInterval(interval);
+    const connectToSSE = () => {
+      const eventSource = new EventSource('/api/leaderboard-updates');
+
+      eventSource.onmessage = (event) => {
+        try {
+          const parsedData = JSON.parse(event.data);
+          if (parsedData.event === "leaderboard_updated") {
+            // Store the current leaderboard data as previous data
+            previousLeaderboardData.current = leaderboardData;
+            setLeaderboardData(parsedData.data);
+          }
+        } catch (e) {
+          console.error("Failed to parse SSE event data:", e);
+          setError("Failed to update leaderboard data.");
+        }
+      };
+
+      eventSource.onerror = (event) => {
+        console.error("SSE error:", event);
+        setError("Failed to connect to leaderboard updates.");
+        eventSource.close();
+      };
+    };
+
+    connectToSSE();
+
+    return () => {
+      // eventSource.close(); // close is already called in onerror
+    };
   }, []);
+
+  // Function to animate the click count
+  const animateValue = (start: number, end: number, duration: number) => {
+    let startTime: number | null = null;
+    return (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      return Math.floor(progress * (end - start) + start);
+    };
+  };
 
   return (
     <div className="mt-8 w-full max-w-md bg-gray-800 rounded-lg p-4">
@@ -50,13 +69,26 @@ const Leaderboard: React.FC = (): JSX.Element => {
           </tr>
         </thead>
         <tbody>
-          {leaderboardData.map((entry, index) => (
-            <tr key={entry.country + index} className="border-t border-gray-700">
-              <td className="p-2">{index + 1}</td>
-              <td className="p-2">{entry.country}</td>
-              <td className="p-2">{entry.clicks}</td>
-            </tr>
-          ))}
+          {leaderboardData.map((entry, index) => {
+            // Find the previous value for animation
+            const previousEntry = previousLeaderboardData.current.find(prevEntry => prevEntry.country_code === entry.country_code);
+            const previousClicks = previousEntry ? previousEntry.clicks : 0;
+            let animatedClicks = entry.clicks; // Default value
+
+            // Animate only if there's a change in clicks
+            if (previousClicks !== entry.clicks) {
+              const animation = animateValue(previousClicks, entry.clicks, 500); // Animation duration: 500ms
+              animatedClicks = animation(performance.now());
+            }
+
+            return (
+              <tr key={entry.country_code + index} className="border-t border-gray-700">
+                <td className="p-2">{index + 1}</td>
+                <td className="p-2">{entry.country_code}</td>
+                <td className="p-2">{animatedClicks}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
