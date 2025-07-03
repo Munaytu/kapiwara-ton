@@ -60,6 +60,7 @@ function generateEventStream() {
   return stream;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_req: NextRequest) {
   console.log("[SSE] Client connected");
   return new NextResponse(generateEventStream(), {
