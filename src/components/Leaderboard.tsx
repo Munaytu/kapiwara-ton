@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import AnimatedNumber from './AnimatedNumber';
 import { JSX } from 'react';
 
 interface LeaderboardEntry {
@@ -62,7 +63,7 @@ const Leaderboard: React.FC = (): JSX.Element => {
               <tr key={entry.country_code + index} className="border-t border-gray-700">
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">{entry.country_code}</td>
-                <td className="p-2">{entry.clicks}</td>
+                <td className="p-2"><AnimatedNumber value={entry.clicks} /></td>
               </tr>
             );
           })}
