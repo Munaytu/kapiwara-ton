@@ -11,7 +11,7 @@ function generateEventStream() {
       async function push() {
         try {
           // 1. Get the leaderboard from Redis cache
-          const leaderboard = await redis.zrange('leaderboard', 0, -1, 'REV', 'WITHSCORES');
+          const leaderboard = await redis.zrange('leaderboard', 0, -1, { rev: true, withScores: true });
           
           if (!leaderboard) {
             console.log("[SSE] No leaderboard data found in Redis.");
