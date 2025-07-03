@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next --debug build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "check-env": "ts-node ./scripts/check-connections.ts"

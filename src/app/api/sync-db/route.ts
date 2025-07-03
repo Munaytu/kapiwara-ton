@@ -76,7 +76,7 @@ async function syncLeaderboard() {
 
     // After successful upsert, delete the keys from Redis
     if (keys.length > 0) {
-      await redis.del(keys);
+      await redis.del(...keys);
       console.log(`[API/SYNC-DB] Cleared ${keys.length} keys from Redis.`);
     }
 
