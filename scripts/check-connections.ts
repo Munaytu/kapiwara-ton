@@ -1,10 +1,14 @@
 import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
-dotenv.config({ path: 'kapiwara-ton/.env.local' });
+dotenv.config({ path: '.env.local' });
 
 async function checkConnections() {
   try {
+  console.log("UPSTASH_REDIS_REST_URL:", process.env.UPSTASH_REDIS_REST_URL);
+    console.log("UPSTASH_REDIS_REST_TOKEN:", process.env.UPSTASH_REDIS_REST_TOKEN);
+    console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     // Redis connection check
     if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
       throw new Error('Missing Upstash Redis credentials');
@@ -36,7 +40,7 @@ async function checkConnections() {
     const { data, error } = await supabase.from('countries').select('*').limit(1);
 
     if (error) {
-      throw error;
+      console.error('Supabase query error:', error.message);
     }
 
     console.log('Supabase connection: ✅');

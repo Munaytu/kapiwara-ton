@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { JSX } from 'react';
 
 interface LeaderboardEntry {
   country: string;
   clicks: number;
 }
 
-const Leaderboard: React.FC = () => {
+const Leaderboard: React.FC = (): JSX.Element => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,19 +16,24 @@ const Leaderboard: React.FC = () => {
     try {
       const response = await fetch('/api/leaderboard');
       if (!response.ok) {
-        throw new Error('Failed to fetch leaderboard data');
-      }
+          console.error(`Failed to fetch leaderboard data: Status ${response.status}`);
+          throw new Error(`Failed to fetch leaderboard data: Status ${response.status}`);
+        }
       const data = await response.json();
       setLeaderboardData(data);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to fetch leaderboard data:", error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
   };
 
   useEffect(() => {
     getLeaderboardData();
-    const interval = setInterval(getLeaderboardData, 5000); // Poll every 5 seconds
+    const interval = setInterval(getLeaderboardData, 2000); // Poll every 2 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -45,7 +51,7 @@ const Leaderboard: React.FC = () => {
         </thead>
         <tbody>
           {leaderboardData.map((entry, index) => (
-            <tr key={entry.country} className="border-t border-gray-700">
+            <tr key={entry.country + index} className="border-t border-gray-700">
               <td className="p-2">{index + 1}</td>
               <td className="p-2">{entry.country}</td>
               <td className="p-2">{entry.clicks}</td>

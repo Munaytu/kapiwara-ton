@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Leaderboard from "@/components/Leaderboard"; // Import the new component
+import Image from "next/image";
 
 export default function HomePage() {
   // Total clicks in the current session, for UI display
@@ -33,9 +34,7 @@ export default function HomePage() {
         })
         .catch(error => {
           console.error("Failed to send clicks:", error);
-          // TODO:  Update state to display an error message to the user.
           setErrorMessage("Error sending clicks. Please try again.");
-          // Example:  setErrorMessage("Error sending clicks. Please try again.");
         });
         
         // Reset the queue for the next batch
@@ -78,10 +77,11 @@ export default function HomePage() {
     >
       <h1 className="text-5xl font-bold mb-4">Kapiwara Ton</h1>
       <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
-        <img
+        <Image
           src={isPopped ? "/images/kapiwara-open.jpg" : "/images/kapiwara-closed.jpg"}
           alt="Kapiwara"
-          className="w-full h-full object-contain select-none"
+          fill
+          className="object-contain select-none"
           draggable="false"
         />
       {errorMessage && <p className="text-red-500">{errorMessage}</p>}
