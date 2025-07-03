@@ -62,7 +62,7 @@ export default function HomePage() {
     }
     setTimeout(() => {
       setIsPopped(false);
-    }, 100);
+    }, 200);
   };
 
   return (
