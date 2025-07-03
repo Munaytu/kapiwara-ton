@@ -28,7 +28,7 @@ function generateEventStream() {
           for (let i = 0; i < leaderboard.length; i += 2) {
             formattedLeaderboard.push({
               country_code: leaderboard[i],
-              clicks: parseInt(leaderboard[i + 1], 10),
+              clicks: parseInt(String(leaderboard[i + 1]), 10),
             });
           }
 
