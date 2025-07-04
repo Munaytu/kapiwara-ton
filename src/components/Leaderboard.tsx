@@ -20,9 +20,8 @@ const Leaderboard: React.FC = (): JSX.Element => {
       eventSource.onmessage = (event) => {
         try {
           const parsedData = JSON.parse(event.data);
-          if (parsedData.event === "leaderboard_updated") {
-            setLeaderboardData(parsedData.data);
-          }
+          // Assuming the server sends the full leaderboard data in each message
+          setLeaderboardData(parsedData);
         } catch (e) {
           console.error("Failed to parse SSE event data:", e);
           setError("Failed to update leaderboard data.");
@@ -34,13 +33,16 @@ const Leaderboard: React.FC = (): JSX.Element => {
         setError("Failed to connect to leaderboard updates.");
         eventSource.close();
       };
+
+      // Clean up the connection when the component unmounts
+      return () => {
+        eventSource.close();
+      };
     };
 
-    connectToSSE();
+    const cleanup = connectToSSE();
 
-    return () => {
-      // eventSource.close(); // close is already called in onerror
-    };
+    return cleanup;
   }, []);
 
   

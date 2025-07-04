@@ -12,10 +12,14 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",
+    "@ton/core": "^0.61.0",
+    "@tonconnect/ui-react": "^2.2.0",
     "@upstash/redis": "^1.31.5",
+    "buffer": "^6.0.3",
     "next": "15.3.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

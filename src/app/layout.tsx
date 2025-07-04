@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "The ultimate capybara clicking game.",
 };
 
+import { TonConnectProvider } from "@/components/TonConnectProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TonConnectProvider>{children}</TonConnectProvider>
       </body>
     </html>
   );
