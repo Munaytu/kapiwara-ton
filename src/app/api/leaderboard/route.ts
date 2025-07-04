@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   const fetchAndSendLeaderboard = async () => {
     try {
-      const leaderboard = await redis.zrevrange('leaderboard:country', 0, 9, 'WITHSCORES');
+      const leaderboard: string[] = await redis.zrevrange('leaderboard:country', 0, 9, 'WITHSCORES');
       const leaderboardData = [];
       for (let i = 0; i < leaderboard.length; i += 2) {
         leaderboardData.push({ country_code: leaderboard[i], clicks: leaderboard[i + 1] });
